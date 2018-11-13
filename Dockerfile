@@ -1,9 +1,9 @@
-FROM centos-x86_64-minimal:6.7
+FROM centos:latest
  
 MAINTAINER BY Michael
  
 ARG PATH=/bin:$PATH
-ARG MARIADB_VERSION=10.0.21
+ARG MARIADB_VERSION=10.1.37
  
 ENV INSTALL_DIR=/usr/local/mariadb \
     DATA_DIR=/data/mariadb
@@ -11,19 +11,19 @@ ENV INSTALL_DIR=/usr/local/mariadb \
 ADD my.cnf /etc/my.cnf
  
 RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-* && \
-    yum install -y libxml2-devel lz4-devel openssl-devel libpcap nmap lsof socat wget cmake which && \
+    yum install -y libxml2-devel lz4-devel openssl-devel libpcap nmap lsof socat wget cmake which gcc make gcc-c++ && \
     groupadd --system mysql && \
     useradd --system --gid mysql mysql && \
     mkdir -p $DATA_DIR && \
     chown -R mysql.mysql $DATA_DIR && \
-    wget -c https://downloads.mariadb.org/interstitial/mariadb-galera-${MARIADB_VERSION}/source/mariadb-galera-${MARIADB_VERSION}.tar.gz && \
+    wget -c https://downloads.mariadb.org/interstitial/mariadb-${MARIADB_VERSION}/source/mariadb-${MARIADB_VERSION}.tar.gz && \
     wget -c http://www.phontron.com/kytea/download/kytea-0.4.7.tar.gz && \
     tar xf kytea-0.4.7.tar.gz && \
     cd kytea-0.4.7/ && \
     ./configure && \
     make -j $(awk '/processor/{i++}END{print i}' /proc/cpuinfo) && \
     make install && cd .. && \
-    tar xf mariadb-galera-${MARIADB_VERSION}.tar.gz && \
+    tar xf mariadb-${MARIADB_VERSION}.tar.gz && \
     cd mariadb-${MARIADB_VERSION}/ && \
     cmake . -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
 -DMYSQL_DATADIR=$DATA_DIR \
@@ -51,7 +51,7 @@ RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-* && \
 -DWITH_INNODB_DISALLOW_WRITES=1 && \
     make -j $(awk '/processor/{i++}END{print i}' /proc/cpuinfo) && \
     make install && cd .. && \
-    /bin/rm -rf /{kytea-0.4.7.tar.gz,mariadb-$MARIADB_VERSION,mariadb-galera-$MARIADB_VERSION.tar.gz,kytea-0.4.7,mariadb.conf} && \
+    /bin/rm -rf /{kytea-0.4.7.tar.gz,mariadb-$MARIADB_VERSION,mariadb-$MARIADB_VERSION.tar.gz,kytea-0.4.7,mariadb.conf} && \
     /bin/rm -rf $DATA_DIR/*.err
  
 ENV PATH=/usr/local/mariadb/bin:$PATH \
